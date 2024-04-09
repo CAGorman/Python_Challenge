@@ -4,66 +4,70 @@
 import os
 import csv
 
-budget_data = os.path.join("budget_data.csv")
+budget_data = os.path.join("Resources", "budget_data.csv")
 output_file = os.path.join("Analysis", "budget_analysis.txt")
 
-#Variable
+# Variables
 total_months = 0
-months_change = []
+net_total = 0
 prev_net = 0
 net_change_list = []
-net_total = 0
-greatest_increase = ["", 0]
-greatest_decrease = ["", 999999999999999]
+greatest_increase_day = ""
+greatest_decrease_day = ""
 
-#Open csv for both reading and writing
-with open(budget_data, 'r') as csv_file:
-   csv_reader = csv.DictReader(csv_file)
+# Open the CSV file
+with open(budget_data, 'r') as file:
+    reader = csv.reader(file)
+    header = next(reader)  # Skip the header row
 
+    # Loop through rows in the CSV file
+    for row in reader:
+        
+        dates = row[0]
+        change = int(row[1]) - prev_net
 
-#run loop for month count
-   for row in csv_reader:
-      total_months = total_months + 1
-      net_total = net_total + int(row["Profit/Losses"])
+        total_months += 1
+        net_total += int(row[1]) 
+        
+        # Calculate net change
+        net_change = int(row[1]) - prev_net
+        net_change_list.append(net_change)
+        
+        prev_net = int(row[1])
 
-      net_change = int(row["Profit/Losses"]) - (prev_net)
-      prev_net = int(row["Profit/Losses"])
-      months_change = (row["Date"])
-      net_change_list.append(net_change)
-
-#find greatest increase (month incl) and decrease (month incl)
-   if net_change > greatest_increase[1]:
-         greatest_increase[0] = row["Date"]
-         greatest_increase[1] = net_change
-
-   if net_change < greatest_decrease[1]:
-         greatest_decrease[0] = row["Date"]
-         greatest_decrease[1] = net_change
-         
-#average of profit/loss changes over the period
-avg__net_change = sum(net_change_list)/ len(net_change_list)
-    
+# Calculate greatest increase in profits
+greatest_increase = max(net_change_list)
+greatest_increase_index = net_change_list.index(greatest_increase)
+greatest_increase_day = dates
 
 
+# Calculate greatest decrease in profits
+greatest_decrease = min(net_change_list)
+greatest_decrease_index = net_change_list.index(greatest_decrease)
+greatest_decrease_day = dates
+
+avg_change = sum(net_change_list) / len(net_change_list)
+formatted_avg_change = "{:.2f}".format(avg_change)
+
+
+# Format the output
 summary = (
-   f"Financual Analysis\n"
-   f"-------------------------\n"
-   f"Total Months:  {total_months}\n"
-   f"Total:  ${net_total}\n"
-   f"Average Change: ${avg__net_change}\n"
-   f"Greatest Increase in Profits: ${greatest_increase}\n"
-   f"Greatest Decrease in Profits: ${greatest_decrease}\n" 
-   )
+    f"Financial Analysis\n"
+    f"-------------------------\n"
+    f"Total Months: {total_months}\n"
+    f"Total: ${net_total}\n"
+    f"Average Change: ${formatted_avg_change}\n"
+    f"Greatest Increase in Profits: {greatest_increase_day} (${greatest_increase})\n"
+    f"Greatest Decrease in Profits: {greatest_decrease_day} (${greatest_decrease})\n"
+)
 
-# #Terminal Print
+# Print the summary
 print(summary)
 
-# #Export txt print
+# Export summary to a text file
 with open('budget_analysis.txt', 'w') as new_file:
+    new_file.write(summary)
       
-      new_file.write(summary) 
-
-      
-      
+  
 
 
